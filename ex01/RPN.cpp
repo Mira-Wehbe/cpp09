@@ -12,20 +12,16 @@ void RPN::calculate(const std::string& expression)
 		{
 			numbers.push(token[0] - '0');
 		}
-		else if (token == "+" || token == "-" ||
-				 token == "*" || token == "/")
+		else if (token == "+" || token == "-" ||token == "*" || token == "/")
 		{
 			if (numbers.size() < 2)
 				throw std::runtime_error("Error");
 
 			int second = numbers.top();
 			numbers.pop();
-
 			int first = numbers.top();
 			numbers.pop();
-
 			int result;
-
 			if (token == "+")
 				result = first + second;
 			else if (token == "-")
@@ -44,7 +40,6 @@ void RPN::calculate(const std::string& expression)
 		else
 			throw std::runtime_error("Error");
 	}
-
 	if (numbers.size() != 1)
 		throw std::runtime_error("Error");
 
