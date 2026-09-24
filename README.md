@@ -4,7 +4,7 @@ _This project has been created as part of the 42 curriculum by miwehbe._
 
 # Description
 
-CPP Module 09 is the last module of the C++ piscine. The goal is to solve three practical problems using the containers of the Standard Template Library (STL), all written in **C++98**. Each exercise must use a container that suits the problem, and a container used in one exercise can't be reused in the next ones.
+CPP Module 09 is the last module of the C++ . The goal is to solve three practical problems using the containers of the Standard Template Library (STL), all written in **C++98**. Each exercise must use a container that suits the problem, and a container used in one exercise can't be reused in the next ones.
 
 | Exercise | Program    | Container(s)                 | Problem                                           |
 |----------|------------|------------------------------|---------------------------------------------------|
@@ -47,8 +47,8 @@ valgrind --leak-check=full --show-leak-kinds=all ./PmergeMe 3 5 9 7 4
 │   ├── main.cpp                 # Entry point, argument check
 │   ├── BitcoinExchange.cpp/.hpp # Database loading, date/value validation, rate lookup
 │   ├── data.csv                 # Bitcoin price database (date,exchange_rate)
-│   ├── input.txt                # Example input file (date | value)
-│   └── Makefile
+│   ├── Makefile
+│ 
 ├── ex01/
 │   ├── main.cpp                 # Entry point, argument check
 │   ├── RPN.cpp/.hpp             # Tokenizer + stack-based evaluator

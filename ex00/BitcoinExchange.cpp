@@ -8,9 +8,8 @@
 #include <limits>
 
 BitcoinExchange::BitcoinExchange(){}
-BitcoinExchange::BitcoinExchange(const BitcoinExchange& other)
-    : database(other.database){}
-BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange& other)
+BitcoinExchange::BitcoinExchange(const BitcoinExchange& other): database(other.database){}//copy constru
+BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange& other)//copy assig
 {
     if (this != &other)
         database = other.database;
@@ -51,8 +50,8 @@ bool BitcoinExchange::isValidDate(const std::string& date) const//Validate YYYY-
     {
         if (i == 4 || i == 7)
             continue;//here when we arrive to - - skip it
-        if (!std::isdigit(static_cast<unsigned char>(date[i])))
-            return false;
+		if (!std::isdigit(date[i]))
+    		return false;
     }
     int year = std::atoi(date.substr(0, 4).c_str());
     int month = std::atoi(date.substr(5, 2).c_str());
@@ -71,12 +70,13 @@ bool BitcoinExchange::isValidNumber(const std::string& value) const//Validate th
     if (value.empty())
         return false;
     std::stringstream ss(value);//we put the value inside a string
+	//stringstream allow me to extract data from string and convert it
     float number;
     char extra;
-    ss >> number;//number get the ss value
-    if (ss.fail())//when we convert hello to nbr doesnt success
+    ss >> number;//number get the ss value so number= the nbr of ss not the string
+    if (ss.fail())//when we convert hello to nbr doesnt success did the convertion fail
         return false;
-    if (ss >> extra)//is there anything that i should read it
+    if (ss >> extra)//is there anything that i should read it 42.5aaa like this
         return false;
     if (number < 0)
         return false;
@@ -85,10 +85,10 @@ bool BitcoinExchange::isValidNumber(const std::string& value) const//Validate th
     return true;
 }
 
-float BitcoinExchange::getRate(const std::string& date) const
+float BitcoinExchange::getRate(const std::string& date) const//the lowerbound fct
 {
-    std::map<std::string, float>::const_iterator it;
-    it = database.lower_bound(date);
+    std::map<std::string, float>::const_iterator it;//create iterator of type map
+    it = database.lower_bound(date);//find the first one who is equal or bigger to the date
     if (it != database.end() && it->first == date)
         return it->second;
     if (it == database.begin())
@@ -131,24 +131,22 @@ void BitcoinExchange::processInput(const std::string& filename)
         throw std::runtime_error("could not open file");
     std::string line;
     std::getline(file, line);
-
     while (std::getline(file, line))
     {
         if (line.empty())
             continue;
-
         std::size_t pipe = line.find('|');
         if (pipe == std::string::npos)
         {
             std::cerr << "Error: bad input => " << line << std::endl;
             continue;
         }
+		// 2021-10-7 |   3
+        std::string date = line.substr(0, pipe);//2021-10-7 hata law fi spae bw2f end l |
+        std::string valueString = line.substr(pipe + 1);//   3 hata law fi space bekhdun klshu baad |
 
-        std::string date = line.substr(0, pipe);
-        std::string valueString = line.substr(pipe + 1);
-
-        std::size_t start = date.find_first_not_of(" \t");//"    2011-01-01   "it point to the 2 the index of 2
-        std::size_t end = date.find_last_not_of(" \t");//same thing tge index of last one
+        std::size_t start = date.find_first_not_of(" \t");//search for the first charact not gab and space
+        std::size_t end = date.find_last_not_of(" \t");//same thing the index of last one
 
         if (start == std::string::npos)//ize ken klu "      "
         {

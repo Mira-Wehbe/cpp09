@@ -11,6 +11,16 @@ PmergeMe::PmergeMe(const PmergeMe &other) { (void)other; }
 PmergeMe &PmergeMe::operator=(const PmergeMe &other) { (void)other; return *this; }
 PmergeMe::~PmergeMe() {}
 
+//comparison counter
+size_t	PmergeMe::comparisons = 0;
+bool	PmergeMe::lessCount(int a, int b)//every time we compare 2 nbr we pass from here
+{
+	comparisons++;
+	return (a < b);
+}
+
+void	PmergeMe::resetComparisons() { comparisons = 0; }
+size_t	PmergeMe::getComparisons() { return comparisons; }
 //validation
 std::vector<int> PmergeMe::parseInput(int argc, char **argv)//validation
 {
@@ -23,7 +33,7 @@ std::vector<int> PmergeMe::parseInput(int argc, char **argv)//validation
 		size_t start = 0;//from first charc
 		if (arg[0] == '+')//if first charct is +
 			start = 1;//start from second char
-		if (start == arg.size())//yane arg "+" size =1 and start =1 
+		if (start == arg.size())//yane arg "+" size =1 and start =1
 			throw std::runtime_error("malformed argument => " + arg);
 		for (size_t j = start; j < arg.size(); j++)
 		{
@@ -41,6 +51,7 @@ std::vector<int> PmergeMe::parseInput(int argc, char **argv)//validation
 }
 
 //the jacobsthal order we should insert
+//in what order should i insert my pending b elements
 std::vector<size_t>	PmergeMe::jacobsthalOrder(size_t n)//lal pend
 {
 	std::vector<size_t>	order;//[]
@@ -85,7 +96,7 @@ static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 	{
 		int a = input[i];
 		int b = input[i + 1];
-		if (a < b)//smaller then biger(small,big)
+		if (PmergeMe::lessCount(a, b))//smaller then biger(small,big)
 			pairs.push_back(std::make_pair(a, b));
 		else
 			pairs.push_back(std::make_pair(b, a));
@@ -108,20 +119,42 @@ static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 			}
 		}
 	}
-
 	std::vector<int> mainChain = sortedLargers;//main chain srt ekhr version lal larger
-	mainChain.insert(mainChain.begin(), sortedPairs[0].first);//yane bi awal inderx bk main chain  bht b1(Sorted pair lal fisrt elmn bl mainchain(b1,a1,a2,a3,...))
+	mainChain.insert(mainChain.begin(), sortedPairs[0].first);//b1 before a1 (b1,a1,a2,a3,...)
 
-	std::vector<size_t> order = PmergeMe::jacobsthalOrder(sortedPairs.size());
+	//posA[k] = index of a(k+1) inside mainChain (b1 at 0 so a1 at 1, a2 at 2 ...)
+	std::vector<size_t> posA;
+	for (size_t i = 0; i < sortedPairs.size(); i++)
+		posA.push_back(i + 1);
+
+	//the stray is like one more b without an a, so it goes in the jacobsthal order too
+	size_t pendSize = sortedPairs.size() + (hasStray ? 1 : 0);
+	std::vector<size_t> order = PmergeMe::jacobsthalOrder(pendSize);
 	for (size_t k = 0; k < order.size(); k++)
 	{
-		int value = sortedPairs[order[k] - 1].first;//ekhd value te3 b3 msln
-		std::vector<int>::iterator pos =std::lower_bound(mainChain.begin(), mainChain.end(), value);//lower bound <= value by3te pos abl l nbr li huwe <=
+		size_t idx = order[k] - 1;//0-based index of the b we insert
+		int value;
+		size_t limit;//we search only in [0, limit)
+		if (idx < sortedPairs.size())
+		{
+			value = sortedPairs[idx].first;//b
+			limit = posA[idx];//b < its a, so search only before a (this is what saves comparisons)
+		}
+		else
+		{
+			value = stray;//stray has no a -> search all the chain
+			limit = mainChain.size();
+		}
+		std::vector<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.begin() + limit, value, PmergeMe::lessCount);
+		size_t insertIdx = pos - mainChain.begin();
 		mainChain.insert(pos, value);
+		for (size_t j = 0; j < posA.size(); j++)//every a after the new nbr moved 1 step right
+			if (posA[j] >= insertIdx)
+				posA[j]++;
 	}
-	if (hasStray)
+	if (hasStray && pendSize == 1)//only 1 pair + stray: jacobsthalOrder(1) is empty
 	{
-		std::vector<int>::iterator pos =std::lower_bound(mainChain.begin(), mainChain.end(), stray);
+		std::vector<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.end(), stray, PmergeMe::lessCount);
 		mainChain.insert(pos, stray);
 	}
 	return mainChain;
@@ -132,7 +165,7 @@ std::vector<int> PmergeMe::sortVector(std::vector<int> input)
 	return fordJohnsonVector(input);
 }
 
-
+//deque
 static std::deque<int>	fordJohnsonDeque(std::deque<int> input)
 {
 	size_t n = input.size();
@@ -151,7 +184,7 @@ static std::deque<int>	fordJohnsonDeque(std::deque<int> input)
 	{
 		int a = input[i];
 		int b = input[i + 1];
-		if (a < b)
+		if (PmergeMe::lessCount(a, b))
 			pairs.push_back(std::make_pair(a, b));
 		else
 			pairs.push_back(std::make_pair(b, a));
@@ -177,22 +210,42 @@ static std::deque<int>	fordJohnsonDeque(std::deque<int> input)
 		}
 	}
 
-	std::deque<int> mainChain = sortedLargers;
-	mainChain.push_front(sortedPairs[0].first);//in vector (insert(begin(),value)
+	std::deque<int> mainChain = sortedLargers;//main chain srt ekhr version lal larger
+	mainChain.push_front(sortedPairs[0].first);//b1 before a1
+	std::vector<size_t> posA;
+	for (size_t i = 0; i < sortedPairs.size(); i++)
+		posA.push_back(i + 1);
 
-	std::vector<size_t> order = PmergeMe::jacobsthalOrder(sortedPairs.size());
+	//the stray is like one more b without an a, so it goes in the jacobsthal order too
+	size_t pendSize = sortedPairs.size() + (hasStray ? 1 : 0);
+	std::vector<size_t> order = PmergeMe::jacobsthalOrder(pendSize);
 	for (size_t k = 0; k < order.size(); k++)
 	{
-		int value = sortedPairs[order[k] - 1].first;
-		std::deque<int>::iterator pos =std::lower_bound(mainChain.begin(), mainChain.end(), value);
+		size_t idx = order[k] - 1;//0-based index of the b we insert
+		int value;
+		size_t limit;//we search only in [0, limit)
+		if (idx < sortedPairs.size())
+		{
+			value = sortedPairs[idx].first;//b
+			limit = posA[idx];//b < its a, so search only before a (this is what saves comparisons)
+		}
+		else
+		{
+			value = stray;//stray has no a -> search all the chain
+			limit = mainChain.size();
+		}
+		std::deque<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.begin() + limit, value, PmergeMe::lessCount);
+		size_t insertIdx = pos - mainChain.begin();
 		mainChain.insert(pos, value);
+		for (size_t j = 0; j < posA.size(); j++)//every a after the new nbr moved 1 step right
+			if (posA[j] >= insertIdx)
+				posA[j]++;
 	}
-	if (hasStray)
+	if (hasStray && pendSize == 1)//only 1 pair + stray: jacobsthalOrder(1) is empty
 	{
-		std::deque<int>::iterator pos =std::lower_bound(mainChain.begin(), mainChain.end(), stray);
+		std::deque<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.end(), stray, PmergeMe::lessCount);
 		mainChain.insert(pos, stray);
 	}
-
 	return mainChain;
 }//same as above but here using deque
 

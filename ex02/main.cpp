@@ -38,18 +38,24 @@ int	main(int argc, char **argv)
 
 	printContainer("Before:", numbers);
 	/* std::vector: fill the container + sort, all inside the timer */
+	PmergeMe::resetComparisons();
 	double	startVec = nowMicro();//get the time we start
 	std::vector<int>	vecInput(numbers.begin(), numbers.end());//create the vector contain the nbr
 	std::vector<int>	sortedVector = PmergeMe::sortVector(vecInput);//sorted using ford-johson
 	double	endVec = nowMicro();//get the time we and
+	size_t	vecComparisons = PmergeMe::getComparisons();
 
 	/* std::deque: fill the container + sort, all inside the timer */
+	PmergeMe::resetComparisons();
 	double	startDeq = nowMicro();
 	std::deque<int>		deqInput(numbers.begin(), numbers.end());
 	std::deque<int>		sortedDeque = PmergeMe::sortDeque(deqInput);
 	double	endDeq = nowMicro();
+	size_t	deqComparisons = PmergeMe::getComparisons();
 	printContainer("After:", sortedDeque);
 	std::cout << "Time to process a range of " << numbers.size()<< " elements with std::vector : " << (endVec - startVec) << " us" << std::endl;
 	std::cout << "Time to process a range of " << numbers.size()<< " elements with std::deque : " << (endDeq - startDeq) << " us" << std::endl;
+	std::cout << "Number of comparisons with std::vector : " << vecComparisons << std::endl;
+	std::cout << "Number of comparisons with std::deque : " << deqComparisons << std::endl;
 	return (0);
 }

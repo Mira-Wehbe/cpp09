@@ -16,6 +16,11 @@ class PmergeMe
 		static std::vector<int>	sortVector(std::vector<int> input);
 		static std::deque<int>	sortDeque(std::deque<int> input);
 		static std::vector<size_t>	jacobsthalOrder(size_t n);
+		static bool	lessCount(int a, int b);//a < b + count 1 comparison
+		static void	resetComparisons();
+		static size_t getComparisons();
+	private:
+		static size_t	comparisons;//total nbr of comparisons
 };
 
 #endif
