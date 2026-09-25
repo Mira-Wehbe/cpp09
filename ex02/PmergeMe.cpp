@@ -81,31 +81,32 @@ std::vector<size_t>	PmergeMe::jacobsthalOrder(size_t n)//lal pend
 //->sorted result
 static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 {
-	size_t n = input.size();//mnkhud 3aded lnbr li mwjud [2,4, 7,1,5]
+	size_t n = input.size();
 	if (n <= 1)
 		return input;
-	bool hasStray = (n % 2 != 0);//even or odd(5%2=1 true)
+	bool hasStray = (n % 2 != 0);
 	int stray = 0;
 	if (hasStray)
 	{
 		stray = input.back();//ekhr wehd li ma ilu couple
-		input.pop_back();//bshilu
+		input.pop_back();
 	}
-	std::vector<std::pair<int, int> > pairs;//li ha ykhzn l pair
+	std::vector<std::pair<int, int> > pairs;
 	for (size_t i = 0; i < input.size(); i += 2)
 	{
 		int a = input[i];
 		int b = input[i + 1];
-		if (PmergeMe::lessCount(a, b))//smaller then biger(small,big)
+		if (PmergeMe::lessCount(a, b))//(small,big)
 			pairs.push_back(std::make_pair(a, b));
 		else
 			pairs.push_back(std::make_pair(b, a));
 	}
 	std::vector<int> largers;
 	for (size_t i = 0; i < pairs.size(); i++)
-		largers.push_back(pairs[i].second);//htet large bi array
-	std::vector<int> sortedLargers = fordJohnsonVector(largers);//recursive lal large 
-	std::vector<std::pair<int, int> > sortedPairs;//[]
+		largers.push_back(pairs[i].second);
+	std::vector<int> sortedLargers = fordJohnsonVector(largers);
+	
+	std::vector<std::pair<int, int> > sortedPairs;
 	std::vector<bool> used(pairs.size(), false);//used[flase,false..3adad lpair false]
 	for (size_t i = 0; i < sortedLargers.size(); i++)
 	{
@@ -113,13 +114,13 @@ static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 		{
 			if (!used[j] && pairs[j].second == sortedLargers[i])
 			{
-				sortedPairs.push_back(pairs[j]);//[(first larger found in whch pair)]
+				sortedPairs.push_back(pairs[j]);
 				used[j] = true;//[true,false,...]
 				break;
 			}
 		}
 	}
-	std::vector<int> mainChain = sortedLargers;//main chain srt ekhr version lal larger
+	std::vector<int> mainChain = sortedLargers;
 	mainChain.insert(mainChain.begin(), sortedPairs[0].first);//b1 before a1 (b1,a1,a2,a3,...)
 
 	//posA[k] = index of a(k+1) inside mainChain (b1 at 0 so a1 at 1, a2 at 2 ...)
@@ -127,18 +128,18 @@ static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 	for (size_t i = 0; i < sortedPairs.size(); i++)
 		posA.push_back(i + 1);
 
-	//the stray is like one more b without an a, so it goes in the jacobsthal order too
+	//the stray is like one more b without an a so it go in the jacobsthal order too
 	size_t pendSize = sortedPairs.size() + (hasStray ? 1 : 0);
 	std::vector<size_t> order = PmergeMe::jacobsthalOrder(pendSize);
 	for (size_t k = 0; k < order.size(); k++)
 	{
-		size_t idx = order[k] - 1;//0-based index of the b we insert
+		size_t idx = order[k] - 1;
 		int value;
 		size_t limit;//we search only in [0, limit)
 		if (idx < sortedPairs.size())
 		{
 			value = sortedPairs[idx].first;//b
-			limit = posA[idx];//b < its a, so search only before a (this is what saves comparisons)
+			limit = posA[idx];//b < its a, so search only before a (this is what save comparisons)
 		}
 		else
 		{
@@ -152,7 +153,7 @@ static std::vector<int>	fordJohnsonVector(std::vector<int> input)
 			if (posA[j] >= insertIdx)
 				posA[j]++;
 	}
-	if (hasStray && pendSize == 1)//only 1 pair + stray: jacobsthalOrder(1) is empty
+	if (hasStray && pendSize == 1)
 	{
 		std::vector<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.end(), stray, PmergeMe::lessCount);
 		mainChain.insert(pos, stray);
@@ -209,8 +210,7 @@ static std::deque<int>	fordJohnsonDeque(std::deque<int> input)
 			}
 		}
 	}
-
-	std::deque<int> mainChain = sortedLargers;//main chain srt ekhr version lal larger
+	std::deque<int> mainChain = sortedLargers;
 	mainChain.push_front(sortedPairs[0].first);//b1 before a1
 	std::vector<size_t> posA;
 	for (size_t i = 0; i < sortedPairs.size(); i++)
